@@ -1,3 +1,4 @@
+package examples
 /**
   * Type Lambdas: https://dotty.epfl.ch/docs/reference/new-types/type-lambdas.html
   */

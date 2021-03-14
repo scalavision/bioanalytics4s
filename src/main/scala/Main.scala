@@ -1,31 +1,50 @@
+
+def vcfParser =
+  val line = "1\t2000\tref\talt\tfilter\tformat\tinfo\tgenotype"
+  import vcf.VcfTransformer._
+  val columns = vcfLineToColumns
+  println(columns)
+
+val csvOfIntegers = "1,2,3\n4,5,6\n"
+
+def hetergenousTypes =
+  s"""|2000,Mercury
+      |1997,Ford
+      |""".stripMargin
+
+def optionalCsvData =
+    s"""|2000,Mercury
+        |,Ford
+        |""".stripMargin
+
+def eitherRow =
+  s"""|2000,Mercury
+      |true,Ford
+      |""".stripMargin
+
+def nutsData =
+  s"""|1997,Ford
+      |true,Mercury
+      |2007,""".stripMargin
 @main
 def Main(args: String*): Unit =
-  runExample("Trait Params")(TraitParams.test())
+  println(vcf.Decoder.decodeCsv[Int](csvOfIntegers))
 
-  runExample("Enum Types")(EnumTypes.test())
+  val data = vcf.RowDecoder.decodeCsv[(Int, String)](hetergenousTypes)
+  println(data)
 
-  runExample("Context Functions")(ContextFunctions.test())
+  val ints = vcf.RowDecoder.decodeCsv[List[Int]](csvOfIntegers)
+  println(ints)
 
-  runExample("Given Instances")(GivenInstances.test())
+  val data2 = vcf.RowDecoder.decodeCsv[(Option[Int], String)](optionalCsvData)
+  println(data2)
 
-  runExample("Conversion")(Conversion.test())
+  val data3 = vcf.RowDecoder.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
+  println(data3)
 
-  runExample("Union Types")(UnionTypes.test())
-
-  runExample("Intersection Types")(IntersectionTypes.test())
-
-  runExample("Type Lambda")(TypeLambdas.test())
-
-  runExample("Multiversal Equality")(MultiversalEquality.test())
-
-  runExample("Parameter Untupling")(ParameterUntupling.test())
-
-  runExample("Structural Types")(StructuralTypes.test())
-
-  runExample("Pattern Matching")(PatternMatching.test())
-end Main
-
-private def runExample(name: String)(f: => Unit): Unit =
-  println(Console.MAGENTA + s"$name example:" + Console.RESET)
-  f
-  println()
+  type Row = List[Either[Either[Int,Boolean],Option[String]]]
+  val data4 = vcf.RowDecoder.decodeCsv[Row](nutsData)
+  println(data4)
+  
+  println("TODO: TRY TO MERGE THE CELL AND ROW DECODER BASED UPON DIFFERENT INPUT String vs List[String]")
+  println("TODO: TRY THE SCALA3 BLOG, AND CREATE CASE CLASSES")

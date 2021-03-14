@@ -1,3 +1,4 @@
+package examples
 import scala.language.implicitConversions
 
 /**
