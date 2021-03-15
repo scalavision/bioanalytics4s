@@ -1,7 +1,7 @@
 package vcf
 
-trait SplitParser[Input, Splitter, Output]:
-  def parse(data: Input, splitter: Splitter): Output
+trait SplitParser[Splitter, Input, Output]:
+  def parse(data: Input): Output
 
 
 trait SplitterType
@@ -9,40 +9,39 @@ trait CommaSplitter extends SplitterType
 trait TabSplitter extends SplitterType
 trait SemiSplitter extends SplitterType
 trait WhiteSpaceSplitter extends SplitterType
-final case class CustomSplitter (char: Char) extends SplitterType
+
+// TODO: create an inline TYPE matcher, it should actually work
+//       only doing this at compile time, will mean there is no
+//       overhead ..
 
 object SplitParser:
 
-  def init[A,B,C](
-    f: (A, B) => C
-  ) = new SplitParser[A,B,C] {
-    override def parse(data: A, splitter: B): C =
-      f(data,splitter)
+  def init[Splitter, A, B](
+    f: A => B
+  ) = new SplitParser[Splitter, A,B] {
+    override def parse(data: A): B =
+      f(data)
   }
 
-  given SplitParser[Char, String, List[String]] =
-    init((c, s) => s.split(c).toList)
-
-
   given SplitParser[CommaSplitter, String, List[String]] =
-    init((_,s) => s.split(',').toList)
+    init((s) => s.split(',').toList)
 
   given SplitParser[TabSplitter, String, List[String]] =
-    init((_,s) => s.split('\t').toList)
+    init((s) => s.split('\t').toList)
 
   given SplitParser[WhiteSpaceSplitter, String, List[String]] =
-    init((_,s) => s.split(' ').toList)
+    init((s) => s.split(' ').toList)
 
   given SplitParser[SemiSplitter, String, List[String]] =
-    init((_,s) => s.split(';').toList)
+    init((s) => s.split(';').toList)
 
-  given SplitParser[CustomSplitter, String, List[String]] =
-    init((customP,s) => s.split(customP.char).toList)
+  // given SplitParser[CustomSplitter, String, List[String]] with
+  //   extension[](c: CustomSplitter) def parse(data: String): List[String] =
+  //     data.split(c.char).toList
 
-
-  def split[A](
+  def split[SplitterType](
     data: String
   )(
-    using splitter: SplitParser[String, SplitterType, List[String]]
+    using splitter: SplitParser[SplitterType, String, List[String]]
   ): List[String] = 
-    splitter.parse(data, splitter)
+    splitter.parse(data)

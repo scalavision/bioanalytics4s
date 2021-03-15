@@ -17,7 +17,7 @@ object GenericDecoder:
 
   given GenericDecoder[String, String] = from[String, String](identity)
   given GenericDecoder[String, Boolean] = from[String, Boolean] { s =>
-    if s == "true" then true else false
+    if s == "true" then true else if s == "false" then false else throw new Exception(s"Parser failed for value: $s")
   }
   given GenericDecoder[String, Short] = from[String, Short](_.toShort)
   given GenericDecoder[String, Int] = from[String, Int](_.toInt)
@@ -74,6 +74,15 @@ object DecodeApi:
       using dec: GenericDecoder[List[String], A]
     ) =
       dec.decode(data)
+
+    def parseAndDecodeRow[A, SplitOn](
+      data: String
+    )(
+      using dec: GenericDecoder[List[String], A],
+      splitterParser: SplitParser[SplitOn, String, List[String]]
+    ) =
+      val parsedData: List[String] = splitterParser.parse(data)
+      dec.decode(parsedData)
     
     def decodeAllRows[A](
       data: List[List[String]]

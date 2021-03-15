@@ -61,7 +61,14 @@ def Main(args: String*): Unit =
   val nutsdataResult = vcf.DecodeApi.decodeAllRows[Row](nutsData2)
   println(nutsdataResult)
 
-  // val data3a = vcf.RowDecoder.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
-  // println(data3)
+  type SingleRow = List[Either[Either[Int,Boolean],Option[String]]]
+  val lines = nutsData.split('\n')
+  val complexNutsData = vcf.DecodeApi.parseAndDecodeRow[SingleRow, vcf.CommaSplitter](lines.head)
+  println(complexNutsData)
+  
+  // println(s"parsing: ${lines.head}")
+  // val first = complexNutsData(lines.head)
+  // println(first)
+
   // println("TODO: TRY TO MERGE THE CELL AND ROW DECODER BASED UPON DIFFERENT INPUT String vs List[String]")
   // println("TODO: TRY THE SCALA3 BLOG, AND CREATE CASE CLASSES")
