@@ -46,5 +46,22 @@ def Main(args: String*): Unit =
   val data4 = vcf.RowDecoder.decodeCsv[Row](nutsData)
   println(data4)
   
-  println("TODO: TRY TO MERGE THE CELL AND ROW DECODER BASED UPON DIFFERENT INPUT String vs List[String]")
-  println("TODO: TRY THE SCALA3 BLOG, AND CREATE CASE CLASSES")
+  val ints2 = vcf.SplitParser.splitParser(csvOfIntegers)
+  val decodedInts2 = vcf.SplitParser.decode[Int](ints2)
+  println(decodedInts2)
+
+  val decodedInts3 = vcf.SplitParser.decodeAll[List[Int]](ints2)
+  println(decodedInts3)
+
+  val optionalCsvData2 = vcf.SplitParser.splitParser(optionalCsvData)
+  val data2a = vcf.SplitParser.decodeAll[(Option[Int], String)](optionalCsvData2)
+  println(data2a)
+
+  val nutsData2 = vcf.SplitParser.splitParser(nutsData)
+  val nutsdataResult = vcf.SplitParser.decodeAll[Row](nutsData2)
+  println(nutsdataResult)
+
+  // val data3a = vcf.RowDecoder.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
+  // println(data3)
+  // println("TODO: TRY TO MERGE THE CELL AND ROW DECODER BASED UPON DIFFERENT INPUT String vs List[String]")
+  // println("TODO: TRY THE SCALA3 BLOG, AND CREATE CASE CLASSES")
