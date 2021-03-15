@@ -55,7 +55,7 @@ object GenericDecoder:
     def decode(row: List[String]) = 
       ( da.decode(row(0)), db.decode(row(1)) )
 
-object SplitParser:
+object DecodeApi:
     import GenericDecoder.given
 
     def splitParser(lines: String, splitter: Char = ','): List[List[String]] =
