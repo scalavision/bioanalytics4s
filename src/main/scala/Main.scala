@@ -47,18 +47,18 @@ def Main(args: String*): Unit =
   println(data4)
   
   val ints2 = vcf.SplitParser.splitParser(csvOfIntegers)
-  val decodedInts2 = vcf.SplitParser.decode[Int](ints2)
+  val decodedInts2 = vcf.SplitParser.decodeUnisonRows[Int](ints2)
   println(decodedInts2)
 
-  val decodedInts3 = vcf.SplitParser.decodeAll[List[Int]](ints2)
+  val decodedInts3 = vcf.SplitParser.decodeAllRows[List[Int]](ints2)
   println(decodedInts3)
 
   val optionalCsvData2 = vcf.SplitParser.splitParser(optionalCsvData)
-  val data2a = vcf.SplitParser.decodeAll[(Option[Int], String)](optionalCsvData2)
+  val data2a = vcf.SplitParser.decodeAllRows[(Option[Int], String)](optionalCsvData2)
   println(data2a)
 
   val nutsData2 = vcf.SplitParser.splitParser(nutsData)
-  val nutsdataResult = vcf.SplitParser.decodeAll[Row](nutsData2)
+  val nutsdataResult = vcf.SplitParser.decodeAllRows[Row](nutsData2)
   println(nutsdataResult)
 
   // val data3a = vcf.RowDecoder.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
