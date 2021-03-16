@@ -1,5 +1,8 @@
 package vcf
 
+import scala.deriving.*
+import scala.compiletime.{erasedValue, summonInline}
+
 trait GenericDecoder[Input, Output]:
   def decode(in: Input): Output
 
@@ -54,6 +57,30 @@ object GenericDecoder:
   ): GenericDecoder[List[String], (A, B)] with
     def decode(row: List[String]) = 
       ( da.decode(row(0)), db.decode(row(1)) )
+
+  /* Skip the derivation part for now ... not sure how useful it is ..
+  import VcfDecoder.given
+  def eqSum[T](s: Mirror.SumOf[T], elems: => List[GenericDecoder[List[String], T]]): GenericDecoder[List[String], T] =
+    new GenericDecoder[List[String], T]:
+        def decode(input: List[String]): T =
+          ???
+
+  def eqProduct[T](p: Mirror.ProductOf[T], elems: => List[GenericDecoder[List[String], T]]): GenericDecoder[List[String], T] =
+    new GenericDecoder[List[String], T]:
+        def decode(input: List[String]): T =
+          ???
+
+  inline def summonAll[T <: Tuple]: List[GenericDecoder[List[String], _]] =
+  inline erasedValue[T] match
+    case _: EmptyTuple => Nil
+    case _: (t *: ts) => summonInline[GenericDecoder[List[String], t]] :: summonAll[ts]
+
+  inline given derived[T](using m: Mirror.Of[T]): GenericDecoder[List[String], T] =
+    lazy val elemInstances = summonAll[m.MirroredElemTypes]
+    inline m match
+      case s: Mirror.SumOf[T]     => ??? // eqSum(s, elemInstances)
+      case p: Mirror.ProductOf[T] => ??? // eqProduct(p, elemInstances)
+  */
 
 object DecodeApi:
     import GenericDecoder.given
