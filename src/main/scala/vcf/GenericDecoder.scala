@@ -50,13 +50,49 @@ object GenericDecoder:
   ): GenericDecoder[List[String], List[A]] with
     def decode(row: List[String]): List[A] =
       row.map(d.decode)
+
+  given emptyTuple: GenericDecoder[List[String], EmptyTuple] with
+      def decode(input: List[String]): EmptyTuple = EmptyTuple
+
+  given tupleDecoder[A, B <: Tuple](
+    using head: GenericDecoder[String, A],
+          tail: GenericDecoder[List[String], B]
+  ): GenericDecoder[List[String], A *: B] with
+      def decode(cells: List[String]) = ???
   
-  given tupleDecoder[A, B](
-    using da: GenericDecoder[String, A],
-          db: GenericDecoder[String, B]
-  ): GenericDecoder[List[String], (A, B)] with
-    def decode(row: List[String]) = 
-      ( da.decode(row(0)), db.decode(row(1)) )
+  // given tuple2Decoder[A, B](
+  //   using da: GenericDecoder[String, A],
+  //         db: GenericDecoder[String, B]
+  // ): GenericDecoder[List[String], (A, B)] with
+  //   def decode(row: List[String]) = 
+  //     ( da.decode(row(0)), db.decode(row(1)) )
+
+  // given tuple3Decoder[A, B, C](
+  //   using da: GenericDecoder[String, A],
+  //         db: GenericDecoder[String, B],
+  //         db: GenericDecoder[String, C],
+  // ): GenericDecoder[List[String], (A, B, C)] with
+  //   def decode(row: List[String]) = 
+  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)) )
+
+  // given tuple4Decoder[A, B, C, D](
+  //   using da: GenericDecoder[String, A],
+  //         db: GenericDecoder[String, B],
+  //         db: GenericDecoder[String, C],
+  //         db: GenericDecoder[String, D],
+  // ): GenericDecoder[List[String], (A, B, C, D)] with
+  //   def decode(row: List[String]) = 
+  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)), db.ecode(row(3)) )
+
+  // given tuple5Decoder[A, B, C, D, E](
+  //   using da: GenericDecoder[String, A],
+  //         db: GenericDecoder[String, B],
+  //         db: GenericDecoder[String, C],
+  //         db: GenericDecoder[String, D],
+  //         db: GenericDecoder[String, E],
+  // ): GenericDecoder[List[String], (A, B, C, D, E)] with
+  //   def decode(row: List[String]) = 
+  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)), db.ecode(row(3)), db.ecode(row(4)))
 
   /* Skip the derivation part for now ... not sure how useful it is ..
   import VcfDecoder.given
@@ -84,6 +120,7 @@ object GenericDecoder:
 
 object DecodeApi:
     import GenericDecoder.given
+    //import VcfDecoder.given
 
     def splitParser(lines: String, splitter: Char = ','): List[List[String]] =
       lines.split('\n').map(_.split(splitter).toList).toList
@@ -96,6 +133,13 @@ object DecodeApi:
       data.map(_.map(dec.decode))
 
     def decodeRow[A](
+      data: List[String]
+    )(
+      using dec: GenericDecoder[List[String], A]
+    ) =
+      dec.decode(data)
+
+    def decodeRowIntoTuples[A <: Tuple](
       data: List[String]
     )(
       using dec: GenericDecoder[List[String], A]

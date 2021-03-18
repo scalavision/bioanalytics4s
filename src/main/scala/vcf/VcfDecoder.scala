@@ -42,16 +42,11 @@ object VcfDecoder:
 
   given GenericDecoder[String, Format] = from[String, Format]( s => Format(s.split(':').toList))
   given GenericDecoder[String, Genotypes] = from[String, Genotypes]( s => Genotypes(s.split(':').toList))
-  given GenericDecoder[List[String], Vcf](
-    using dec: GenericDecoder[List[String], VcfType]
-  ): GenericDecoder[List[String], VcfType] = from[String, Vcf]{ s => 
-    ???
-  }
   
   
 object VcfParser:
-  import GenericDecoder.given
-  import VcfDecoder.given
+  //import GenericDecoder.given
+  
 
   // private def parser(cols: List[String])(
   //   // using dec: GenericDecoder[List[String], (Chrom, Pos, Ref, Alt, Qual, Filter, Info, Option[Format], List[String])]
@@ -64,5 +59,7 @@ object VcfParser:
 
   def line(s: String): Vcf =
     val cols = s.split('\t').toList
+    DecodeApi.decodeRowIntoTuples[(String, String, String, String)](cols.take(5))
+    // DecodeApi.decodeRow[(Chrom, Pos, Ref, Alt, Qual)](cols.take(5))
     //parser(cols)
     ???
