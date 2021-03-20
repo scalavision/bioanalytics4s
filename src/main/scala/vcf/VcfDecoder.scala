@@ -45,19 +45,8 @@ object VcfDecoder:
   
   
 object VcfParser:
-  //import GenericDecoder.given
   import VcfDecoder.given
   
-
-  // private def parser(cols: List[String])(
-  //   // using dec: GenericDecoder[List[String], (Chrom, Pos, Ref, Alt, Qual, Filter, Info, Option[Format], List[String])]
-  //   // we need a hetergenous list, or tuple machinery
-  //   // Look into the mirror blog, you should be able to split the case class product into its elements
-  //   // then recursively parse each element individually, even in parallel in theory, but not worth the work atm
-  //   using dec: GenericDecoder[List[String], Vcf]
-  // ) =
-  //   dec.decode(cols)
-
   def line(s: String) =
     val cols = s.split('\t').toList
     DecodeApi.decodeRowIntoTuples[(String, String, String, String)](cols.take(5))
