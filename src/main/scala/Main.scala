@@ -65,13 +65,3 @@ def Main(args: String*): Unit =
   val lines = nutsData.split('\n')
   val complexNutsData = vcf.DecodeApi.parseAndDecodeRow[SingleRow, vcf.CommaSplitter](lines.head)
   println(complexNutsData)
-  
-  // println(s"parsing: ${lines.head}")
-  // val first = complexNutsData(lines.head)
-  // println(first)
-  val vcfLine = "1\t2000\tref\talt\tfilter\tformat\tinfo\tgenotype"
-  val result = vcf.VcfParser.line(vcfLine)
-  println(result)
-
-  // println("TODO: TRY TO MERGE THE CELL AND ROW DECODER BASED UPON DIFFERENT INPUT String vs List[String]")
-  // println("TODO: TRY THE SCALA3 BLOG, AND CREATE CASE CLASSES")

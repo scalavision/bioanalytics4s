@@ -66,14 +66,9 @@ object VcfDecoder:
   
 object VcfParser:
   import VcfDecoder.given
+  import scala.deriving.*
   
-  def singleSample(vcfLine: String) =
-    DecodeApi.decodeRowIntoTuples[(Chrom, Pos, SampleId, Ref, Alt, Qual, Filter, Info, Format, Genotype)](vcfLine.split('\t').toList)
-
-  def line(s: String) =
-    val cols = s.split('\t').toList
-    DecodeApi.decodeRowIntoTuples[(String, String, String, String)](cols.take(5))
-    DecodeApi.decodeRowIntoTuples[(Chrom, Pos, Ref, Alt)](cols.take(5))
-    // DecodeApi.decodeRow[(Chrom, Pos, Ref, Alt, Qual)](cols.take(5))
-    //parser(cols)
+  def singleSample(vcfLine: String): Vcf.SingleSample =
+    val parsedResult = DecodeApi.decodeRowIntoTuples[(Chrom, Pos, SampleId, Ref, Alt, Qual, Filter, Info, Format, Genotype)](vcfLine.split('\t').toList)
+    summon[Mirror.Of[vcf.Vcf.SingleSample]].fromProduct(parsedResult)
     
