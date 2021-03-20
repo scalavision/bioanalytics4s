@@ -46,6 +46,7 @@ object VcfDecoder:
   
 object VcfParser:
   //import GenericDecoder.given
+  import VcfDecoder.given
   
 
   // private def parser(cols: List[String])(
@@ -57,9 +58,10 @@ object VcfParser:
   // ) =
   //   dec.decode(cols)
 
-  def line(s: String): Vcf =
+  def line(s: String) =
     val cols = s.split('\t').toList
     DecodeApi.decodeRowIntoTuples[(String, String, String, String)](cols.take(5))
+    DecodeApi.decodeRowIntoTuples[(Chrom, Pos, Ref, Alt)](cols.take(5))
     // DecodeApi.decodeRow[(Chrom, Pos, Ref, Alt, Qual)](cols.take(5))
     //parser(cols)
-    ???
+    
