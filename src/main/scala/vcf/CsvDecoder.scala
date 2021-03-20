@@ -37,7 +37,6 @@ object RowDecoder:
 
 trait CellDecoder[Cell, A]:
   def decode(cell: Cell): A
-  //TODO: add an extension method here, or maybe don't
 
 object CellDecoder:
 

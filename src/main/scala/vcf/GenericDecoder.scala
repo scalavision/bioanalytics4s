@@ -59,72 +59,12 @@ object GenericDecoder:
           tail: GenericDecoder[List[String], B]
   ): GenericDecoder[List[String], A *: B] with
       def decode(cells: List[String]) = cells match
-        case Nil => throw new Exception("empty list in decoder, not enough data provided")
+        case Nil => throws(s"Too few columns in Row")
         case x :: xs =>
           head.decode(x) *: tail.decode(xs)
-        
-  
-  // given tuple2Decoder[A, B](
-  //   using da: GenericDecoder[String, A],
-  //         db: GenericDecoder[String, B]
-  // ): GenericDecoder[List[String], (A, B)] with
-  //   def decode(row: List[String]) = 
-  //     ( da.decode(row(0)), db.decode(row(1)) )
-
-  // given tuple3Decoder[A, B, C](
-  //   using da: GenericDecoder[String, A],
-  //         db: GenericDecoder[String, B],
-  //         db: GenericDecoder[String, C],
-  // ): GenericDecoder[List[String], (A, B, C)] with
-  //   def decode(row: List[String]) = 
-  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)) )
-
-  // given tuple4Decoder[A, B, C, D](
-  //   using da: GenericDecoder[String, A],
-  //         db: GenericDecoder[String, B],
-  //         db: GenericDecoder[String, C],
-  //         db: GenericDecoder[String, D],
-  // ): GenericDecoder[List[String], (A, B, C, D)] with
-  //   def decode(row: List[String]) = 
-  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)), db.ecode(row(3)) )
-
-  // given tuple5Decoder[A, B, C, D, E](
-  //   using da: GenericDecoder[String, A],
-  //         db: GenericDecoder[String, B],
-  //         db: GenericDecoder[String, C],
-  //         db: GenericDecoder[String, D],
-  //         db: GenericDecoder[String, E],
-  // ): GenericDecoder[List[String], (A, B, C, D, E)] with
-  //   def decode(row: List[String]) = 
-  //     ( da.decode(row(0)), db.ecode(row(1)), db.ecode(row(2)), db.ecode(row(3)), db.ecode(row(4)))
-
-  /* Skip the derivation part for now ... not sure how useful it is ..
-  import VcfDecoder.given
-  def eqSum[T](s: Mirror.SumOf[T], elems: => List[GenericDecoder[List[String], T]]): GenericDecoder[List[String], T] =
-    new GenericDecoder[List[String], T]:
-        def decode(input: List[String]): T =
-          ???
-
-  def eqProduct[T](p: Mirror.ProductOf[T], elems: => List[GenericDecoder[List[String], T]]): GenericDecoder[List[String], T] =
-    new GenericDecoder[List[String], T]:
-        def decode(input: List[String]): T =
-          ???
-
-  inline def summonAll[T <: Tuple]: List[GenericDecoder[List[String], _]] =
-  inline erasedValue[T] match
-    case _: EmptyTuple => Nil
-    case _: (t *: ts) => summonInline[GenericDecoder[List[String], t]] :: summonAll[ts]
-
-  inline given derived[T](using m: Mirror.Of[T]): GenericDecoder[List[String], T] =
-    lazy val elemInstances = summonAll[m.MirroredElemTypes]
-    inline m match
-      case s: Mirror.SumOf[T]     => ??? // eqSum(s, elemInstances)
-      case p: Mirror.ProductOf[T] => ??? // eqProduct(p, elemInstances)
-  */
 
 object DecodeApi:
     import GenericDecoder.given
-    //import VcfDecoder.given
 
     def splitParser(lines: String, splitter: Char = ','): List[List[String]] =
       lines.split('\n').map(_.split(splitter).toList).toList
