@@ -58,7 +58,11 @@ object GenericDecoder:
     using head: GenericDecoder[String, A],
           tail: GenericDecoder[List[String], B]
   ): GenericDecoder[List[String], A *: B] with
-      def decode(cells: List[String]) = ???
+      def decode(cells: List[String]) = cells match
+        case Nil => throw new Exception("empty list in decoder, not enough data provided")
+        case x :: xs =>
+          head.decode(x) *: tail.decode(xs)
+        
   
   // given tuple2Decoder[A, B](
   //   using da: GenericDecoder[String, A],
