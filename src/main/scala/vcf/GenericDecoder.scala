@@ -9,8 +9,8 @@ trait GenericDecoder[Input, Output]:
 object GenericDecoder:
 
   def apply[A, B](
-    using da: GenericDecoder[A, B]
-  ): GenericDecoder[A, B] = da
+    using instance: GenericDecoder[A, B]
+  ): GenericDecoder[A, B] = instance
 
   def from[A, B](
     f: A => B

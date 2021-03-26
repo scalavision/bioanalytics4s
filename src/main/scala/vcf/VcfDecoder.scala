@@ -27,8 +27,6 @@ enum Vcf:
     genotypes: List[Genotype]
   )
 
-
-
 sealed trait VcfType
 final case class Chrom(value: String) extends VcfType
 final case class Pos(value: Int) extends VcfType
@@ -44,7 +42,7 @@ final case class Genotype(s: List[String])
 object VcfDecoder:
   import GenericDecoder.from
   given GenericDecoder[String, Chrom] = from[String, Chrom](Chrom.apply)
-  given GenericDecoder[String, Pos] = from[String, Pos](s => Pos.apply(s.toInt))
+  given GenericDecoder[String, Pos] = from[String, Pos](s => Pos(s.toInt))
   given GenericDecoder[String, Ref] = from[String, Ref](s => Ref(s))
   given GenericDecoder[String, Alt] = from[String, Alt](s => Alt(s))
   given GenericDecoder[String, Qual] = from[String, Qual](s => Qual(s))
@@ -71,4 +69,3 @@ object VcfParser:
   def singleSample(vcfLine: String): Vcf.SingleSample =
     val parsedResult = DecodeApi.decodeRowIntoTuples[(Chrom, Pos, SampleId, Ref, Alt, Qual, Filter, Info, Format, Genotype)](vcfLine.split('\t').toList)
     summon[Mirror.Of[vcf.Vcf.SingleSample]].fromProduct(parsedResult)
-    
