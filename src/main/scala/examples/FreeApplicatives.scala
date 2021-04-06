@@ -10,8 +10,8 @@ object ConsoleApp:
 
   type Dsl[A] = Free[Console, A]
 
-  import Console._
+  // import Console._
 
-  def readLine  : Dsl[String]             = ReadLine(identity)
-  def printLine(line: String): Dsl[Unit]  = PrintLine(line, ())
+  // def readLine  : Dsl[String]             = ReadLine(identity)
+  // def printLine(line: String): Dsl[Unit]  = PrintLine(line, ())
   

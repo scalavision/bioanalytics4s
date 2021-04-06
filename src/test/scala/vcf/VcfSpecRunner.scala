@@ -5,4 +5,5 @@ import zio.test.Assertion._
 
 object VcfSpecRunner extends DefaultRunnableSpec:
   override def spec: ZSpec[Environment, Failure] = 
-    VcfParserSpec.suite1
+    StreamParserSpec.suite1
+    //VcfParserSpec.suite1
