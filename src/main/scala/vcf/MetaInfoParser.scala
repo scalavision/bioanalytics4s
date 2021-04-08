@@ -83,6 +83,7 @@ object MetaInfo:
     case "A" => NumberType.A
     case "R" => NumberType.R
     case "G" => NumberType.G
+    case "Flag" => NumberType.Flag
     case i =>  NumberType.Length(i.toInt)
   }
 
@@ -132,7 +133,7 @@ object MetaInfo:
     FORMAT(
       id = fields(1), 
       nrOfValues = toNumber(fields(3)),
-      tpe = toType(fields(5)), // can not have the flag type
+      tpe = toType(fields(5)),
       description = fields(7).trim(),
       formatMapValues(fields)
     )
@@ -185,8 +186,6 @@ object MetaInfo:
     )
   }
 
-
-  //def apply(line: String): MetaInfo =
   def apply(line: String): MetaInfo =
     val metaType = line.drop(2).takeWhile(_ != '=')
     metaType match
