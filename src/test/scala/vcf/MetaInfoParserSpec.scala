@@ -3,8 +3,6 @@ package vcf
 import zio.test.*
 import zio.test.Assertion.*
 
-
-
 object MetaInfoSpecRunner:
 
   val info1 = """##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">"""
