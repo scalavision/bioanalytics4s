@@ -75,8 +75,13 @@ object MetaTags:
   inline val reference="reference"
   inline val SAMPLE="SAMPLE"
 
+enum ParsedValue:
+  case IdValue(name: String, keyValues: Map[String, String])
+  case SimpleValue(name: String, value: String)
+
 object MetaInfo:
 
+  /*
   val breakMetaIdField: String => Map[String, String] = 
     _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(",").map { line =>
       val key = line.takeWhile(_ != '=')
@@ -194,9 +199,56 @@ object MetaInfo:
       result._2
     )
   }
+*/
 
-  def apply(line: String): MetaInfo =
+  def iterateMetaLine(
+    line: List[Char],
+    index: Int,
+    tmp: (String, String),
+    accum: Map[String, String]
+  ): Map[String, String] =
+    line match
+      case Nil => accum
+      case '>' :: Nil => accum
+      case '<' :: xs => 
+        iterateMetaLine(xs, index, tmp, accum)
+      case '=' :: xs if index == 0 => iterateMetaLine(xs, 1, ("",""), Map("fieldType" -> tmp._1))
+      case '=' :: xs if index == 1 => iterateMetaLine(xs, 2, tmp, accum)
+      case x :: xs if index == 0 => iterateMetaLine(xs, 0, (tmp._1 + x.toString(), ""), accum)
+      case x :: xs if index == 1 => iterateMetaLine(xs, 1, (tmp._1 + x, ""), accum)
+      case '"' :: xs if index == 2 => iterateMetaLine(xs, 3, tmp, accum)
+      case x :: xs if index == 2 => iterateMetaLine(xs, 2, (tmp._1, tmp._2 + x), accum)
+      case x :: xs if index == 3 => iterateMetaLine(xs, 4, tmp, accum)
+      case '\\' :: xs if index == 4 => iterateMetaLine(xs, 4, (tmp._1, tmp._2 + """\""""), accum)
+      case x :: xs if index == 4 => iterateMetaLine(xs, 4, (tmp._1, tmp._2 + x), accum)
+      case '"' :: xs if index == 4 => iterateMetaLine(xs, 5, tmp, accum)
+      case ',' :: xs if index == 5 => iterateMetaLine(xs, 0, ("", ""), accum ++ Map(tmp._1 -> tmp._2))
+      case _ => throw new Exception(s"unbalancd: ${line.mkString}, $tmp, $accum")
+
+  def metaLineToParsedValue: String => ParsedValue = line =>
     val metaType = line.drop(2).takeWhile(_ != '=')
+    val dropLength = metaType.length + 3
+    val data = line.drop(dropLength)
+    val tagged = data.take(1)
+    val next = data.drop(1)
+    tagged match 
+      case "<" => 
+        assert(next.last == '>', s"meta line $line does not end with '>', but  ${next.last}")
+        val keyValues = next.dropRight(1).split(',').map { keyValue =>
+          val key = keyValue.takeWhile(_ != '=')
+          val value = keyValue.drop(key.size).drop(1)
+          key -> value
+        }.toMap
+        ParsedValue.IdValue(metaType, keyValues)
+      case _ =>
+        ParsedValue.SimpleValue(metaType, next)
+
+  def apply(line: String): MetaInfo = ???
+    /*
+    val metaType = line.drop(2).takeWhile(_ != '=')
+
+
+
     metaType match
       case MetaTags.INFO => extractINFO(breakMetaIdField(line.drop(MetaTags.INFO.length + 1)))
       case MetaTags.FORMAT => extractFORMAT(breakMetaIdField(line.drop(MetaTags.FORMAT.length + 1)))
@@ -219,3 +271,4 @@ object MetaInfo:
         println(s"here it is: $meta")
         extractMETA(idLine)
       case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")
+    */
