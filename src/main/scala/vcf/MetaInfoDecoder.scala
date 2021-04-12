@@ -77,8 +77,12 @@ object MetaTags:
 
 object MetaInfo:
 
-  val breakMetaIdField: String => Array[String] = 
-    _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(",").flatMap {_.split("=")}
+  val breakMetaIdField: String => Map[String, String] = 
+    _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(",").map { line =>
+      val key = line.takeWhile(_ != '=')
+      val value = line.drop(key.size).drop(1)
+      key -> value
+    }.toMap
   
   val toNumber: String => NumberType = {
     case "." => NumberType.`.`
@@ -156,10 +160,9 @@ object MetaInfo:
     )
   }
 
-  val extractMETA: Array[String] => META = fields => {
-    println(fields(0))
+  val extractMETA: Array[KeyValue] => META = fields => {
     META (
-      id = fields(1),
+      id = fields(1).value,
       mapValues(3)(fields)
     )
   }
@@ -186,7 +189,7 @@ object MetaInfo:
     //println(result)
 
     Contig (
-      id = fields(0),
+      id = fields(1),
       result._1,
       result._2
     )
@@ -198,13 +201,21 @@ object MetaInfo:
       case MetaTags.INFO => extractINFO(breakMetaIdField(line.drop(MetaTags.INFO.length + 1)))
       case MetaTags.FORMAT => extractFORMAT(breakMetaIdField(line.drop(MetaTags.FORMAT.length + 1)))
       case MetaTags.ALT => extractALT(breakMetaIdField(line.drop(MetaTags.ALT.length + 1)))
-      case MetaTags.META => extractMETA(breakMetaIdField(line.drop(MetaTags.META.length + 1)))
+      case MetaTags.META => 
+        println("META line:")
+        println(line)
+        val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
+        println(s"id: ${idLine}")
+        extractMETA(idLine)
       case MetaTags.SAMPLE => extractSAMPLE(breakMetaIdField(line.drop(MetaTags.SAMPLE.length + 1)))
       case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
       case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
       case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
-      case MetaTags.reference =>
-
-        extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
-      case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' => extractMETA(breakMetaIdField(metaType))
+      case MetaTags.reference => Reference(line.drop(MetaTags.reference.size + 3).trim())
+        // extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
+      case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' =>
+        val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
+        println(s"id: ${idLine}")
+        println(s"here it is: $meta")
+        extractMETA(idLine)
       case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")
