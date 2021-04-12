@@ -3,6 +3,7 @@ package vcf
 import zio.test.*
 import zio.test.Assertion.*
 
+
 object MetaInfoSpecRunner:
 
   val info1 = """##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">"""
@@ -61,8 +62,13 @@ object MetaInfoSpecRunner:
       assert(parsedConfig1)(equalTo(targetConfig1)) &&
       assert(parsedFileFormat)(equalTo(targetFileFormat))
 
-      // &&
-      // assert(INFO("END",Length(1),Integer,"End position of the structural variant",None,None,Map()))(equalTo(MetaInfo(format1)))
-      
+    },
+    test("parse header example"){
+      val wd = os.pwd
+      val header = wd / "src" / "test" / "resources" / "header.vcf"
+      val lines = os.read.lines(header).toList
+      val result = lines.map(MetaInfo.apply)
+      assert(result.size)(equalTo(3))
     }
+
   )

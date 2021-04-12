@@ -1,5 +1,11 @@
 # vcfprocessor
 
+## resources
+
+* [mirror blog, typeclass derivation](https://blog.philipp-martini.de/blog/magic-mirror-scala3/)
+* [enhancing dynamo db api, metaprogramming](https://melgenek.github.io/scala-3-dynamodb)
+* [info about tupels, typelevel programming](https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html)
+
 The most convenient vcf parser, filter and transformer, using scala 3
 
 Useful info about sets, union, intersection, exclusion, symmetric difference and Jaccard coefficient.

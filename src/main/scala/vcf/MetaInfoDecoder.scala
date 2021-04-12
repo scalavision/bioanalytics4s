@@ -53,6 +53,7 @@ enum MetaInfo:
   //TODO encode as url
   case PedigreeDB(url: String)
   case Undefined(name: String, value: String)
+  case Reference(value: String)
 
 //TODO: I am pretty sure you can calculate those lengths at compiletime
 // using the scala.compiletime package
@@ -71,6 +72,7 @@ object MetaTags:
   inline val META="META"
   inline val assembly="assembly"
   inline val contig="contig"
+  inline val reference="reference"
   inline val SAMPLE="SAMPLE"
 
 object MetaInfo:
@@ -147,6 +149,7 @@ object MetaInfo:
   }
 
   val extractALT: Array[String] => ALT = fields => {
+    println(fields(0))
     ALT (
       id = fields(1),
       description = fields(3)
@@ -154,6 +157,7 @@ object MetaInfo:
   }
 
   val extractMETA: Array[String] => META = fields => {
+    println(fields(0))
     META (
       id = fields(1),
       mapValues(3)(fields)
@@ -179,8 +183,10 @@ object MetaInfo:
       else
         (None, Map.empty)
 
+    //println(result)
+
     Contig (
-      id = fields(1),
+      id = fields(0),
       result._1,
       result._2
     )
@@ -197,5 +203,8 @@ object MetaInfo:
       case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
       case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
       case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
+      case MetaTags.reference =>
+
+        extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
       case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' => extractMETA(breakMetaIdField(metaType))
       case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")

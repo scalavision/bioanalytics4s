@@ -1,4 +1,4 @@
-package model.resolver
+package vcf
 
 import scala.deriving.Mirror
 import scala.compiletime.constValue

@@ -1,4 +1,4 @@
-package model.resolver
+package vcf
 
 trait ADTPrinter[A]:
   def print(a: A): String
