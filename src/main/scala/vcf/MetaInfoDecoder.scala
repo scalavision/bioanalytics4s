@@ -99,12 +99,15 @@ object MetaInfo:
   val ID: Vector[String] => String = v => v(1)
   val Number: Vector[String] => String = v => v(3)
   val Type: Vector[String] => String = v => v(5)
+
   def toMapFrom(index: Int): Vector[String] => Map[String, String] = v =>
     val descriptionFields = v.drop(index).mkString(",")
     
     val result = descriptionFields.foldLeft(FieldAccum(PState.Key, KeyValue("", ""), Map.empty)) { (acc, c) =>
-      def secondLastValueIsEscape() =
-      acc.keyValue.value.dropRight(2).last == '\\'
+      
+      def secondLast() = acc.keyValue.value.dropRight(1).last
+
+      def thirdLast() = acc.keyValue.value.dropRight(2).last
     
       c match
         case '"' if acc.parseState == PState.SwitchingToValue => 
@@ -115,7 +118,12 @@ object MetaInfo:
             parseState = PState.Value
           )
 
-        case ',' if acc.keyValue.value.last == '"' && !secondLastValueIsEscape() && acc.parseState == PState.Value =>
+        case ',' if acc.keyValue.value.last == '"' && acc.parseState == PState.Value && secondLast() != '\\' =>
+          acc.copy(parseState = PState.SwitchingToKey)
+
+        //Spaces are hopefully not allowed in info fields, but we allow for one space to exist
+        case ',' if acc.keyValue.value.last == ' ' && secondLast() == '"'  && thirdLast() != '\\' =>
+          println("WARNING: Found a whitespace in between a key / value pair in the metainfo header, this could be an invalid metainfo header")
           acc.copy(parseState = PState.SwitchingToKey)
 
         case '=' if acc.parseState == PState.Key => acc.copy(parseState = PState.SwitchingToValue)
@@ -143,12 +151,17 @@ object MetaInfo:
           )
 
         case _ =>
-          println("missed at:")
-          pprint.pprintln(acc)
-          throw new Exception(s"missed value: $c")
+          println("parser info on crash:")
 
+          println(s""""
+            parsed and valid fields: ${acc.accum.mkString}
+            keyValue parsing now: ${acc.keyValue}
+            state of the parser: ${acc.parseState}
+          """)
+
+          println(s"This part of the metainfo field does not seem to be valid: ${descriptionFields}")
+          throw new Exception(s"not able to handle this character: $c")
     }
-
 
     def removeLastTag() = 
       if result.keyValue.value.last == '>' then
