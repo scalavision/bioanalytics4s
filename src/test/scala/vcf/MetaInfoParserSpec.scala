@@ -42,6 +42,7 @@ object MetaInfoSpecRunner:
       val data = """ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion",Source="source",Version="version">"""
       val test = data.split(',').toVector
       val result = MetaInfo.toMapFrom(3)(test)
+      pprint.pprintln(result)
       assert(1)(equalTo(1))
     }
 

@@ -79,45 +79,85 @@ enum ParsedValue:
   case IdValue(name: String, keyValues: Map[String, String])
   case SimpleValue(name: String, value: String)
 
-case class KeyValue(key: String, value: String)
-case class FieldAccum(
-  c1: Option[Char],
-  c2: Option[Char],
-  c3: Option[Char],
-  keyValue: KeyValue,
-  accum: Map[String, String]
-)
+
 
 object MetaInfo:
+
+  case class KeyValue(key: String, value: String)
+  case class FieldAccum(
+    parseState: PState,
+    keyValue: KeyValue,
+    accum: Map[String, String]
+  )
+
+  enum PState:
+    case Key
+    case Value
+    case SwitchingToValue
+    case SwitchingToKey
 
   val ID: Vector[String] => String = v => v(1)
   val Number: Vector[String] => String = v => v(3)
   val Type: Vector[String] => String = v => v(5)
   def toMapFrom(index: Int): Vector[String] => Map[String, String] = v =>
     val descriptionFields = v.drop(index).mkString(",")
-    descriptionFields.foldLeft{ FieldAccum(
-      c1 = None,
-      c2 = None,
-      c3 = None,
-      keyValue = KeyValue("", ""),
-      accum = Map.empty
-    )} { (acc, element) =>
-      
-        
-      ???
+    
+    val result = descriptionFields.foldLeft(FieldAccum(PState.Key, KeyValue("", ""), Map.empty)) { (acc, c) =>
+      def secondLastValueIsEscape() =
+      acc.keyValue.value.dropRight(2).last == '\\'
+    
+      c match
+        case '"' if acc.parseState == PState.SwitchingToValue => 
+          acc.copy(
+            keyValue = acc.keyValue.copy(
+              value = acc.keyValue.value :+ c
+            ),
+            parseState = PState.Value
+          )
+
+        case ',' if acc.keyValue.value.last == '"' && !secondLastValueIsEscape() && acc.parseState == PState.Value =>
+          acc.copy(parseState = PState.SwitchingToKey)
+
+        case '=' if acc.parseState == PState.Key => acc.copy(parseState = PState.SwitchingToValue)
+
+        case c if acc.parseState == PState.SwitchingToKey => 
+          acc.copy(
+            accum = acc.accum + (acc.keyValue.key -> acc.keyValue.value),
+            keyValue = acc.keyValue.copy(
+              key = c.toString(),
+              value = ""
+            ),
+            parseState = PState.Key
+          )
+
+        case c if acc.parseState == PState.Key => 
+          acc.copy(keyValue = acc.keyValue.copy(
+            key = acc.keyValue.key :+ c
+          ))
+
+        case c if acc.parseState == PState.Value =>
+          acc.copy(
+            keyValue = acc.keyValue.copy(
+              value = acc.keyValue.value :+ c
+            )
+          )
+
+        case _ =>
+          println("missed at:")
+          pprint.pprintln(acc)
+          throw new Exception(s"missed value: $c")
+
     }
 
-    ???
-    // println("content of vector:")
-    // pprint.pprintln(v)
-    // val array = v.drop(index).mkString(",")
 
-    // println("array")
-    // pprint.pprintln(array)
-    // val array2 = array.split("=\"")
-    // println("array2")
-    // pprint.pprintln(array2)
-    // Map.empty
+    def removeLastTag() = 
+      if result.keyValue.value.last == '>' then
+        result.keyValue.value.dropRight(1)
+      else
+        println("warning, the last character of the metainfo field was not '>', that might mean we dropped a few characters")
+        result.keyValue.value
+
+    result.accum + (result.keyValue.key -> removeLastTag())
 
   val toNumber: String => NumberType = {
     case "." => NumberType.`.`
