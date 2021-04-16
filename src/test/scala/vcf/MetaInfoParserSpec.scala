@@ -9,7 +9,7 @@ object MetaInfoSpecRunner:
   val info1 = """##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">"""
   val info2 = """##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant", "source"="article_ref", "version"="1.6">"""
   val info3 = """##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant", "source"="article_ref", "version"="1.6", "some_key"="some_value">"""
-  val info4 = """##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion">"""
+  val info4 = """##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion", >"""
   val format1 = """##FORMAT=<ID=PB_REF,Number=1,Type=Integer,Description="Number of PacBio reads supporting the REF allele as predicted by svviz">"""
   val format2 = """##FORMAT=<ID=PB_REF,Number=1,Type=Integer,Description="Number of PacBio reads supporting the REF allele as predicted by svviz", source"="article_ref", "version"="1.6", "some_key"="some_value">"""
   val contig1 = """##contig=<ID=1,length=249250621>"""
@@ -19,23 +19,29 @@ object MetaInfoSpecRunner:
   val fileDate1="""##fileDate=20180605"""
 
   val suite1 = suite("meta info parser")(
-    test("parsing manually defined meta lines"){
-      val meta = List(info1, info2, info3, format1, format2, contig1, contig2, unknown, fileformat1, fileDate1)
-      val result = meta.map(MetaInfo.metaLineToParsedValue)
-      assert(result.size)(equalTo(10))
-    },
-    test("parse description containing `=`"){
-      // val data = 
-      val result = MetaInfo.iterateMetaLine(info4.toList.drop(2), 0, ("", ""), Map.empty)
-      pprint.pprintln(result)
-      assert(1)(equalTo(1))
-    },
-    test("parsing meta lines from test file"){
-      val wd = os.pwd
-      val header = wd / "src" / "test" / "resources" / "header.vcf"
-      val lines = os.read.lines(header).toList
-      val result = lines.map(MetaInfo.metaLineToParsedValue)      
-      //pprint.pprintln(result)
+    // test("parsing manually defined meta lines"){
+    //   val meta = List(info1, info2, info3, format1, format2, contig1, contig2, unknown, fileformat1, fileDate1)
+    //   val result = meta.map(MetaInfo.metaLineToParsedValue)
+    //   assert(result.size)(equalTo(10))
+    // },
+    // test("parse description containing `=`"){
+    //   // val data = 
+    //   val result = MetaInfo.iterateMetaLine(info4.toList.drop(2), 0, ("", ""), Map.empty)
+    //   pprint.pprintln(result)
+    //   assert(1)(equalTo(1))
+    // },
+    // test("parsing meta lines from test file"){
+    //   val wd = os.pwd
+    //   val header = wd / "src" / "test" / "resources" / "header.vcf"
+    //   val lines = os.read.lines(header).toList
+    //   val result = lines.map(MetaInfo.metaLineToParsedValue)      
+    //   //pprint.pprintln(result)
+    //   assert(1)(equalTo(1))
+    // },
+    test("complex metainfo"){
+      val data = """ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion",Source="source",Version="version">"""
+      val test = data.split(',').toVector
+      val result = MetaInfo.toMapFrom(3)(test)
       assert(1)(equalTo(1))
     }
 

@@ -36,9 +36,9 @@ enum MetaInfo:
   // In addition all values in InfoType can be used
   // The ‘Flag’ type indicates that the INFO field does not contain a Value entry,
   // and hence the Number must be 0 in this case.
-  case INFO(id: String, nrOfValues: NumberType, tpe: DataType, description: String, source: Option[String], version: Option[String], additionalFields: Map[String, String])
+  case INFO(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: Map[String, String] = Map.empty[String, String])
   case FILTER(id: String, description: String)
-  case FORMAT(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: Map[String, String])
+  case FORMAT(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: Map[String, String] = Map.empty[String, String])
   //TODO: Special defined fields for Structural Variants
   //TODO: IUPAC ambiguity codes
   case ALT(id: String, description: String)
@@ -79,7 +79,66 @@ enum ParsedValue:
   case IdValue(name: String, keyValues: Map[String, String])
   case SimpleValue(name: String, value: String)
 
+case class KeyValue(key: String, value: String)
+case class FieldAccum(
+  c1: Option[Char],
+  c2: Option[Char],
+  c3: Option[Char],
+  keyValue: KeyValue,
+  accum: Map[String, String]
+)
+
 object MetaInfo:
+
+  val ID: Vector[String] => String = v => v(1)
+  val Number: Vector[String] => String = v => v(3)
+  val Type: Vector[String] => String = v => v(5)
+  def toMapFrom(index: Int): Vector[String] => Map[String, String] = v =>
+    val descriptionFields = v.drop(index).mkString(",")
+    descriptionFields.foldLeft{ FieldAccum(
+      c1 = None,
+      c2 = None,
+      c3 = None,
+      keyValue = KeyValue("", ""),
+      accum = Map.empty
+    )} { (acc, element) =>
+      
+        
+      ???
+    }
+
+    ???
+    // println("content of vector:")
+    // pprint.pprintln(v)
+    // val array = v.drop(index).mkString(",")
+
+    // println("array")
+    // pprint.pprintln(array)
+    // val array2 = array.split("=\"")
+    // println("array2")
+    // pprint.pprintln(array2)
+    // Map.empty
+
+  val toNumber: String => NumberType = {
+    case "." => NumberType.`.`
+    case "A" => NumberType.A
+    case "R" => NumberType.R
+    case "G" => NumberType.G
+    case "Flag" => NumberType.Flag
+    case i =>  NumberType.Length(i.toInt)
+  }
+
+  val toType: String => DataType = {
+    case "String" => DataType.String
+    case "Integer" => DataType.Integer
+    case "Float" => DataType.Float
+    case "Character" => DataType.Character
+  }
+
+  val metaInfo: String => INFO = s => 
+    val columns = s.split(',').toVector
+    INFO(ID(columns), toNumber(Number(columns)), toType(Type(columns)), "blah")
+    
 
   /*
   val breakMetaIdField: String => Map[String, String] = 
