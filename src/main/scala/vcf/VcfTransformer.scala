@@ -37,7 +37,6 @@ object VcfTransformer:
       Columns(value.split('\t').toIndexedSeq)
     case _ => throw new Exception("inconcivable")
   }
-    
 
   def transformColumn[A, B](index: Int, f: A => B): Line => Columns = ???
     

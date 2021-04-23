@@ -36,9 +36,9 @@ enum MetaInfo:
   // In addition all values in InfoType can be used
   // The ‘Flag’ type indicates that the INFO field does not contain a Value entry,
   // and hence the Number must be 0 in this case.
-  case INFO(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: Map[String, String] = Map.empty[String, String])
+  case INFO(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: IndexedSeq[(String, String)] = IndexedSeq.empty)
   case FILTER(id: String, description: String)
-  case FORMAT(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: Map[String, String] = Map.empty[String, String])
+  case FORMAT(id: String, nrOfValues: NumberType, tpe: DataType, description: String, additionalFields: IndexedSeq[(String, String)] = IndexedSeq.empty)
   //TODO: Special defined fields for Structural Variants
   //TODO: IUPAC ambiguity codes
   case ALT(id: String, description: String)
@@ -79,15 +79,13 @@ enum ParsedValue:
   case IdValue(name: String, keyValues: Map[String, String])
   case SimpleValue(name: String, value: String)
 
-
-
 object MetaInfo:
 
   case class KeyValue(key: String, value: String)
   case class FieldAccum(
     parseState: PState,
     keyValue: KeyValue,
-    accum: Map[String, String]
+    accum: IndexedSeq[(String, String)]
   )
 
   enum PState:
@@ -96,19 +94,18 @@ object MetaInfo:
     case SwitchingToValue
     case SwitchingToKey
 
-  val ID: Vector[String] => String = v => v(1)
-  val Number: Vector[String] => String = v => v(3)
-  val Type: Vector[String] => String = v => v(5)
+  def valueOfMetaKeyValue: String => String = _.split('=').last
+  val ID: Vector[String] => String = v => valueOfMetaKeyValue(v(0))
+  val Number: Vector[String] => String = v => valueOfMetaKeyValue(v(1))
+  val Type: Vector[String] => String = v => valueOfMetaKeyValue(v(2))
 
-  def toMapFrom(index: Int): Vector[String] => Map[String, String] = v =>
+  def toMapFromIndex(index: Int): Vector[String] => IndexedSeq[(String, String)] = v =>
     val descriptionFields = v.drop(index).mkString(",")
-    
-    val result = descriptionFields.foldLeft(FieldAccum(PState.Key, KeyValue("", ""), Map.empty)) { (acc, c) =>
-      
-      def secondLast() = acc.keyValue.value.dropRight(1).last
-
-      def thirdLast() = acc.keyValue.value.dropRight(2).last
-    
+    val result = descriptionFields.foldLeft(FieldAccum(PState.Key, KeyValue("", ""), IndexedSeq.empty)) { (acc, c) =>
+      def secondLast() = 
+        acc.keyValue.value.dropRight(1).last
+      def thirdLast() =
+        acc.keyValue.value.dropRight(2).last
       c match
         case '"' if acc.parseState == PState.SwitchingToValue => 
           acc.copy(
@@ -130,7 +127,7 @@ object MetaInfo:
 
         case c if acc.parseState == PState.SwitchingToKey => 
           acc.copy(
-            accum = acc.accum + (acc.keyValue.key -> acc.keyValue.value),
+            accum = acc.accum :+ (acc.keyValue.key -> acc.keyValue.value),
             keyValue = acc.keyValue.copy(
               key = c.toString(),
               value = ""
@@ -170,7 +167,7 @@ object MetaInfo:
         println("warning, the last character of the metainfo field was not '>', that might mean we dropped a few characters")
         result.keyValue.value
 
-    result.accum + (result.keyValue.key -> removeLastTag())
+    result.accum :+ ((result.keyValue.key -> removeLastTag()))
 
   val toNumber: String => NumberType = {
     case "." => NumberType.`.`
@@ -178,7 +175,8 @@ object MetaInfo:
     case "R" => NumberType.R
     case "G" => NumberType.G
     case "Flag" => NumberType.Flag
-    case i =>  NumberType.Length(i.toInt)
+    case i =>  
+      NumberType.Length(i.toInt)
   }
 
   val toType: String => DataType = {
@@ -190,8 +188,8 @@ object MetaInfo:
 
   val metaInfo: String => INFO = s => 
     val columns = s.split(',').toVector
-    INFO(ID(columns), toNumber(Number(columns)), toType(Type(columns)), "blah")
-    
+    val additionalFields = toMapFromIndex(3)(columns)
+    INFO(ID(columns), toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._1, additionalFields.tail)
 
   /*
   val breakMetaIdField: String => Map[String, String] = 
@@ -313,7 +311,36 @@ object MetaInfo:
   }
 */
 
-  def iterateMetaLine(
+
+  def apply(line: String): MetaInfo =
+    val metaType = line.drop(2).takeWhile(_ != '=')
+    val dataLine = line.dropWhile(_ != '=').drop(1)
+    val columnsByComma = line.drop(1).split(',')
+    metaType match
+      case MetaTags.INFO => metaInfo(dataLine.dropWhile(_ != '<').drop(1))//extractINFO(breakMetaIdField(line.drop(MetaTags.INFO.length + 1)))
+      // case MetaTags.FORMAT => extractFORMAT(breakMetaIdField(line.drop(MetaTags.FORMAT.length + 1)))
+      // case MetaTags.ALT => extractALT(breakMetaIdField(line.drop(MetaTags.ALT.length + 1)))
+      // case MetaTags.META => 
+      //   println("META line:")
+      //   println(line)
+      //   val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
+      //   println(s"id: ${idLine}")
+      //   extractMETA(idLine)
+      // case MetaTags.SAMPLE => extractSAMPLE(breakMetaIdField(line.drop(MetaTags.SAMPLE.length + 1)))
+      // case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
+      // case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
+      // case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
+      // case MetaTags.reference => Reference(line.drop(MetaTags.reference.size + 3).trim())
+      //   // extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
+      // case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' =>
+      //   val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
+      //   println(s"id: ${idLine}")
+      //   println(s"here it is: $meta")
+      //   extractMETA(idLine)
+      case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")
+    /*
+
+      def iterateMetaLine(
     line: List[Char],
     index: Int,
     tmp: (String, String),
@@ -355,8 +382,7 @@ object MetaInfo:
       case _ =>
         ParsedValue.SimpleValue(metaType, next)
 
-  def apply(line: String): MetaInfo = ???
-    /*
+
     val metaType = line.drop(2).takeWhile(_ != '=')
 
 

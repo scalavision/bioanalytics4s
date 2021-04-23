@@ -41,22 +41,22 @@ object MetaInfoSpecRunner:
     test("complex metainfo"){
       val data = """ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion" ,Source="source",Version="version">"""
       val test = data.split(',').toVector
-      val result = MetaInfo.toMapFrom(3)(test)
-      pprint.pprintln(result)
+      val result = MetaInfo.toMapFromIndex(3)(test)
       assert(1)(equalTo(1))
-    }
+    },
 
-    /*
     test("info field"){
       import MetaInfo.*
       import NumberType.*
       import DataType.*
 
-      val info = INFO("END",Length(1),Integer,"\"End position of the structural variant\"",None,None,Map())
+      // source = Some("\"article_ref\""),version = Some("\"1.6\""), 
+      val info = INFO("END",Length(1),Integer,"\"End position of the structural variant\"", IndexedSeq())
       val parsedInfo = MetaInfo(info1)
       val parsedInfo2 = MetaInfo(info2)
+      
       val info2Target =
-        INFO("END",Length(1),Integer,"\"End position of the structural variant\"",source = Some("\"article_ref\""),version = Some("\"1.6\""),Map())
+        INFO("END",Length(1),Integer,"\"End position of the structural variant\"",IndexedSeq())
       val parsedInfo3 = MetaInfo(info3)
       val info3Target =
         INFO(
@@ -64,44 +64,42 @@ object MetaInfoSpecRunner:
           nrOfValues = Length(value = 1),
           tpe = Integer,
           description = "\"End position of the structural variant\"",
-          source = Some(value = "\"article_ref\""),
-          version = Some(value = "\"1.6\""),
-          additionalFields = Map(" \"some_key\"" -> "\"some_value\"")
+          additionalFields = IndexedSeq("\"article_ref\"" -> "\"1.6\"", " \"some_key\"" -> "\"some_value\"")
         )
       val parsedFormat1 = MetaInfo(format1)
-      val parsedFormat2 = MetaInfo(format2)
-      val targetFormat1 = FORMAT("PB_REF",Length(1), Integer,"\"Number of PacBio reads supporting the REF allele as predicted by svviz\"",Map()) 
-      val targetFormat2 = FORMAT("PB_REF",Length(1), Integer,"\"Number of PacBio reads supporting the REF allele as predicted by svviz\"",Map(
-        " source\"" -> "\"article_ref\"",
-        " \"version\"" -> "\"1.6\"",
-        " \"some_key\"" -> "\"some_value\""
-        )
-      )
-      val parsedConfig1 =  MetaInfo(contig1)
-      val parsedConfig2 =  MetaInfo(contig2)
-      val targetConfig1 = Contig(id = "1", length = Some(value = 249250621), additionalFields = Map())
-      val targetConfig2 = Contig(id = "3", length = Some(value = 198022430), additionalFields = Map())
+      // val parsedFormat2 = MetaInfo(format2)
+      // val targetFormat1 = FORMAT("PB_REF",Length(1), Integer,"\"Number of PacBio reads supporting the REF allele as predicted by svviz\"",IndexedSeq()) 
+      // val targetFormat2 = FORMAT("PB_REF",Length(1), Integer,"\"Number of PacBio reads supporting the REF allele as predicted by svviz\"", IndexedSeq(
+      //   " source\"" -> "\"article_ref\"",
+      //   " \"version\"" -> "\"1.6\"",
+      //   " \"some_key\"" -> "\"some_value\""
+      //   )
+      // )
+      // val parsedConfig1 =  MetaInfo(contig1)
+      // val parsedConfig2 =  MetaInfo(contig2)
+      // val targetConfig1 = Contig(id = "1", length = Some(value = 249250621), additionalFields = Map())
+      // val targetConfig2 = Contig(id = "3", length = Some(value = 198022430), additionalFields = Map())
 
-      val parsedFileFormat = MetaInfo(fileformat1)
-      val targetFileFormat = FileFormat("VCFv4.2")
-
-      assert(info)(equalTo(parsedInfo)) &&
-      assert(parsedInfo2)(equalTo(info2Target)) &&
-      assert(parsedInfo3)(equalTo(info3Target)) &&
-      assert(parsedInfo3)(equalTo(info3Target)) &&
-      assert(parsedFormat1)(equalTo(targetFormat1)) &&
-      assert(parsedFormat2)(equalTo(targetFormat2)) &&
-      assert(parsedConfig1)(equalTo(targetConfig1)) &&
-      assert(parsedConfig2)(equalTo(targetConfig2)) &&
-      assert(parsedFileFormat)(equalTo(targetFileFormat))
-
+      // val parsedFileFormat = MetaInfo(fileformat1)
+      // val targetFileFormat = FileFormat("VCFv4.2")
+        
+      // assert(info)(equalTo(parsedInfo)) &&
+      // assert(parsedInfo2)(equalTo(info2Target)) &&
+      // assert(parsedInfo3)(equalTo(info3Target)) &&
+      // assert(parsedInfo3)(equalTo(info3Target)) &&
+      // assert(parsedFormat1)(equalTo(targetFormat1)) &&
+      // assert(parsedFormat2)(equalTo(targetFormat2)) &&
+      // assert(parsedConfig1)(equalTo(targetConfig1)) &&
+      // assert(parsedConfig2)(equalTo(targetConfig2)) &&
+      // assert(parsedFileFormat)(equalTo(targetFileFormat))
+      assert(1)(equalTo(1))
     },
-    test("parse header example"){
-      val wd = os.pwd
-      val header = wd / "src" / "test" / "resources" / "header.vcf"
-      val lines = os.read.lines(header).toList
-      val result = lines.map(MetaInfo.apply)
-      assert(result.size)(equalTo(3))
-    }
-    */
+    // test("parse header example"){
+    //   val wd = os.pwd
+    //   val header = wd / "src" / "test" / "resources" / "header.vcf"
+    //   val lines = os.read.lines(header).toList
+    //   val result = lines.map(MetaInfo.apply)
+    //   assert(result.size)(equalTo(3))
+    // }
+    
   )
