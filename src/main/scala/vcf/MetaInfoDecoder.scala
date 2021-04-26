@@ -46,7 +46,7 @@ enum MetaInfo:
   //The URL field specifies the location of a fasta file containing breakpoint assemblies
   // referenced in the VCF records for structural variants via the BKPTID INFO key
   case Assembly(value: String)
-  case Contig(id: String, length: Option[Int], additionalFields: Map[String, String])
+  case Contig(id: String, length: Option[Int], additionalFields: IndexedSeq[(String, String)])
   case META(id: String, additionalFields: Map[String, String])
   case SAMPLE(id: String, additionalFields: Map[String, String])
   case PEDIGREE(id: String, original: String)
@@ -186,19 +186,22 @@ object MetaInfo:
     case "Character" => DataType.Character
   }
 
-  val metaInfo: String => INFO = s => 
-    val columns = s.split(',').toVector
+  val metaInfo: Vector[String] => INFO = columns => 
     val additionalFields = toMapFromIndex(3)(columns)
-    INFO(ID(columns), toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._1, additionalFields.tail)
+    INFO(ID(columns), toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._2, additionalFields.tail)
 
-  /*
+  val metaFormat: Vector[String] => FORMAT = columns =>
+    val additionalFields = toMapFromIndex(3)(columns)
+    FORMAT(ID(columns), toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._2, additionalFields.tail)
+  
   val breakMetaIdField: String => Map[String, String] = 
-    _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(",").map { line =>
+    _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(',').map { line =>
       val key = line.takeWhile(_ != '=')
       val value = line.drop(key.size).drop(1)
       key -> value
     }.toMap
-  
+
+  /*
   val toNumber: String => NumberType = {
     case "." => NumberType.`.`
     case "A" => NumberType.A
@@ -289,36 +292,49 @@ object MetaInfo:
     )
   }
 
-  val extractContig: Array[String] => Contig = fields => {
-    val result: (Option[Int], Map[String, String]) =
-      if fields.length >= 3 then
-        val map = mapValues(5)(fields)
+
+  }
+*/
+
+  val extractContig: Vector[String] => Contig = fields => {
+    val mappedFields = fields.map { line =>
+      val key = line.takeWhile(_ != '=')
+      val value = line.drop(key.size).drop(1)
+      key -> value
+    }.toMap
+    
+    pprint.pprintln(fields)
+    val result: (Option[Int], IndexedSeq[(String, String)]) =
+      if fields.length >= 1 then
+        val map = toMapFromIndex(1)(fields)
         try
-          val length = fields(3).toInt
+          val length = fields(1).toInt
           (Some(length), map)
         catch
           case _ => (None, map)
       else
-        (None, Map.empty)
-
-    //println(result)
+        (None, IndexedSeq.empty)
 
     Contig (
       id = fields(1),
       result._1,
       result._2
     )
-  }
-*/
 
+  }
 
   def apply(line: String): MetaInfo =
+
     val metaType = line.drop(2).takeWhile(_ != '=')
     val dataLine = line.dropWhile(_ != '=').drop(1)
     val columnsByComma = line.drop(1).split(',')
+    val columns = dataLine.dropWhile(_ != '<').drop(1).split(',').toVector
+    
     metaType match
-      case MetaTags.INFO => metaInfo(dataLine.dropWhile(_ != '<').drop(1))//extractINFO(breakMetaIdField(line.drop(MetaTags.INFO.length + 1)))
-      // case MetaTags.FORMAT => extractFORMAT(breakMetaIdField(line.drop(MetaTags.FORMAT.length + 1)))
+      case MetaTags.INFO => metaInfo(columns)
+      case MetaTags.FORMAT => metaFormat(columns)
+      case MetaTags.contig => extractContig(columns)
+
       // case MetaTags.ALT => extractALT(breakMetaIdField(line.drop(MetaTags.ALT.length + 1)))
       // case MetaTags.META => 
       //   println("META line:")
@@ -327,8 +343,8 @@ object MetaInfo:
       //   println(s"id: ${idLine}")
       //   extractMETA(idLine)
       // case MetaTags.SAMPLE => extractSAMPLE(breakMetaIdField(line.drop(MetaTags.SAMPLE.length + 1)))
-      // case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
-      // case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
+      case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
+      case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
       // case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
       // case MetaTags.reference => Reference(line.drop(MetaTags.reference.size + 3).trim())
       //   // extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
