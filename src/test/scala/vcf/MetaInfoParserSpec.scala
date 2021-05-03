@@ -25,7 +25,7 @@ object MetaInfoSpecRunner:
       assert(result.size)(equalTo(10))
     },
     test("complex metainfo"){
-      val data = """ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion" ,Source="s \"ource",Version="version">"""
+      val data = """ID=SVTYPE,Number=1,Type=String,Description="Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion" ,Source="s \",ource",Version="version">"""
       val test = data.split(',').toVector
       val result = MetaInfo.toMapFromIndex(3)(test)
       val target = Vector(
@@ -33,7 +33,7 @@ object MetaInfoSpecRunner:
           "Description",
           "\"Type of SV:DEL=Deletion, CON=Contraction, INS=Insertion, DUP=Duplication, INV=Inversion\" "
         ),
-        ("Source", "\"s \\\"ource\""),
+        ("Source", "\"s \\\",ource\""),
         ("Version", "\"version\"")
       )
       assert(result)(equalTo(target))
