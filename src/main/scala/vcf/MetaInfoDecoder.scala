@@ -46,9 +46,9 @@ enum MetaInfo:
   //The URL field specifies the location of a fasta file containing breakpoint assemblies
   // referenced in the VCF records for structural variants via the BKPTID INFO key
   case Assembly(value: String)
-  case Contig(id: String, length: Option[Int], additionalFields: IndexedSeq[(String, String)])
-  case META(id: String, additionalFields: Map[String, String])
-  case SAMPLE(id: String, additionalFields: Map[String, String])
+  case Contig(id: String, length: Option[Int], additionalFields: Map[String, String])
+  case META(id: String, additionalFields: IndexedSeq[(String, String)])
+  case SAMPLE(id: String, additionalFields: IndexedSeq[(String, String)])
   case PEDIGREE(id: String, original: String)
   //TODO encode as url
   case PedigreeDB(url: String)
@@ -161,11 +161,13 @@ object MetaInfo:
     }
 
     def removeLastTag() = 
-      if result.keyValue.value.last == '>' then
-        result.keyValue.value.dropRight(1)
-      else
+      if(result.keyValue.value.isEmpty) ""
+      else if (result.keyValue.value.last == '>') 
+          result.keyValue.value.dropRight(1)
+      else {
         println("warning, the last character of the metainfo field was not '>', that might mean we dropped a few characters")
         result.keyValue.value
+      }
 
     result.accum :+ ((result.keyValue.key -> removeLastTag()))
 
@@ -201,126 +203,52 @@ object MetaInfo:
       key -> value
     }.toMap
 
-  /*
-  val toNumber: String => NumberType = {
-    case "." => NumberType.`.`
-    case "A" => NumberType.A
-    case "R" => NumberType.R
-    case "G" => NumberType.G
-    case "Flag" => NumberType.Flag
-    case i =>  NumberType.Length(i.toInt)
-  }
+  val columnToMap: Vector[String] => Map[String, String] = _.map { line =>
+      val key = line.takeWhile(_ != '=')
+      val value = line.drop(key.size).drop(1).filter(_.isDigit)
+      key -> value
+    }.toMap
 
-  val toType: String => DataType = {
-    case "String" => DataType.String
-    case "Integer" => DataType.Integer
-    case "Float" => DataType.Float
-    case "Character" => DataType.Character
-  }
-
-  val sourceValue: Array[String] => Option[String] = columns =>
-    if columns.length >= 10 then Some(columns(9))
-    else None
-
-  val versionValue: Array[String] => Option[String] = columns =>
-    if columns.length >= 12 then Some(columns(11))
-    else None
-
-  def listToMap(values: List[String], map: Map[String, String]): Map[String, String] = values match
-    case x::y::Nil => map.updated(x, y)
-    case x::y::rest => listToMap(rest, map.updated(x, y))
-    case Nil => Map.empty
-    case _ => throw new Exception(s"ERROR in the parser, parsing metainfo: $values, (key,value) pair seems to be uneven, probably only the key is available")
-
-
-  def mapValues(limit: Int): Array[String] => Map[String, String] = columns =>
-    if columns.length >= limit then
-      listToMap(columns.drop(limit - 1).toList, Map.empty)
-    else Map.empty
-
-  def infoMapValues: Array[String] => Map[String, String] = mapValues(13)(_)
-  def formatMapValues: Array[String] => Map[String,String] = mapValues(9)(_)
-
-  val extractINFO: Array[String] => INFO = fields => {
-    INFO(
-      id = fields(1), 
-      nrOfValues  = toNumber(fields(3)),
-      tpe = toType(fields(5)),
-      description = fields(7).trim(),
-      sourceValue(fields),
-      versionValue(fields),
-      infoMapValues(fields)
+  val extractContig: Vector[String] => Contig = fields => {
+    val mappedFields = columnToMap(fields)
+    Contig (
+      id = mappedFields("ID"),
+      length = mappedFields.get("length").fold(None)(s => Some(s.toInt)),
+      (mappedFields - "ID") - "length"
     )
   }
 
-  val extractFORMAT: Array[String] => FORMAT = fields => {
-    FORMAT(
-      id = fields(1), 
-      nrOfValues = toNumber(fields(3)),
-      tpe = toType(fields(5)),
-      description = fields(7).trim(),
-      formatMapValues(fields)
-    )
+  val extractFORMAT: Vector[String] => FORMAT = columns => {
+    val additionalFields = toMapFromIndex(3)(columns)
+    FORMAT(ID(columns),toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._2, additionalFields.tail)
   }
 
-  val extractFILTER: Array[String] => FILTER = fields => {
+  val extractFILTER: Vector[String] => FILTER = fields => {
     FILTER(
       id = fields(1),
       description = fields(3)
     )
   }
 
-  val extractALT: Array[String] => ALT = fields => {
-    println(fields(0))
+  val extractALT: Vector[String] => ALT = fields => {
     ALT (
       id = fields(1),
       description = fields(3)
     )
   }
 
-  val extractMETA: Array[KeyValue] => META = fields => {
+  val extractMETA: Vector[String] => META = columns => {
     META (
-      id = fields(1).value,
-      mapValues(3)(fields)
+      id = columns(1),
+      toMapFromIndex(3)(columns)
     )
   }
 
-  val extractSAMPLE: Array[String] => SAMPLE = fields => {
+  val extractSAMPLE: Vector[String] => SAMPLE = columns => {
     SAMPLE (
-      id = fields(1),
-      mapValues(3)(fields)
+      id = columns(1),
+      toMapFromIndex(3)(columns)
     )
-  }
-
-
-  }
-*/
-
-  val extractContig: Vector[String] => Contig = fields => {
-    val mappedFields = fields.map { line =>
-      val key = line.takeWhile(_ != '=')
-      val value = line.drop(key.size).drop(1)
-      key -> value
-    }.toMap
-    
-    pprint.pprintln(fields)
-    val result: (Option[Int], IndexedSeq[(String, String)]) =
-      if fields.length >= 1 then
-        val map = toMapFromIndex(1)(fields)
-        try
-          val length = fields(1).toInt
-          (Some(length), map)
-        catch
-          case _ => (None, map)
-      else
-        (None, IndexedSeq.empty)
-
-    Contig (
-      id = fields(1),
-      result._1,
-      result._2
-    )
-
   }
 
   def apply(line: String): MetaInfo =
@@ -334,95 +262,11 @@ object MetaInfo:
       case MetaTags.INFO => metaInfo(columns)
       case MetaTags.FORMAT => metaFormat(columns)
       case MetaTags.contig => extractContig(columns)
-
-      // case MetaTags.ALT => extractALT(breakMetaIdField(line.drop(MetaTags.ALT.length + 1)))
-      // case MetaTags.META => 
-      //   println("META line:")
-      //   println(line)
-      //   val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
-      //   println(s"id: ${idLine}")
-      //   extractMETA(idLine)
-      // case MetaTags.SAMPLE => extractSAMPLE(breakMetaIdField(line.drop(MetaTags.SAMPLE.length + 1)))
+      case MetaTags.ALT => extractALT(columns)
+      case MetaTags.SAMPLE => extractSAMPLE(columns)
       case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
       case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
-      // case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
-      // case MetaTags.reference => Reference(line.drop(MetaTags.reference.size + 3).trim())
-      //   // extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
-      // case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' =>
-      //   val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
-      //   println(s"id: ${idLine}")
-      //   println(s"here it is: $meta")
-      //   extractMETA(idLine)
-      case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")
-    /*
-
-      def iterateMetaLine(
-    line: List[Char],
-    index: Int,
-    tmp: (String, String),
-    accum: Map[String, String]
-  ): Map[String, String] =
-    line match
-      case Nil => accum
-      case '>' :: Nil => accum
-      case '<' :: xs => 
-        iterateMetaLine(xs, index, tmp, accum)
-      case '=' :: xs if index == 0 => iterateMetaLine(xs, 1, ("",""), Map("fieldType" -> tmp._1))
-      case '=' :: xs if index == 1 => iterateMetaLine(xs, 2, tmp, accum)
-      case x :: xs if index == 0 => iterateMetaLine(xs, 0, (tmp._1 + x.toString(), ""), accum)
-      case x :: xs if index == 1 => iterateMetaLine(xs, 1, (tmp._1 + x, ""), accum)
-      case '"' :: xs if index == 2 => iterateMetaLine(xs, 3, tmp, accum)
-      case x :: xs if index == 2 => iterateMetaLine(xs, 2, (tmp._1, tmp._2 + x), accum)
-      case x :: xs if index == 3 => iterateMetaLine(xs, 4, tmp, accum)
-      case '\\' :: xs if index == 4 => iterateMetaLine(xs, 4, (tmp._1, tmp._2 + """\""""), accum)
-      case x :: xs if index == 4 => iterateMetaLine(xs, 4, (tmp._1, tmp._2 + x), accum)
-      case '"' :: xs if index == 4 => iterateMetaLine(xs, 5, tmp, accum)
-      case ',' :: xs if index == 5 => iterateMetaLine(xs, 0, ("", ""), accum ++ Map(tmp._1 -> tmp._2))
-      case _ => throw new Exception(s"unbalancd: ${line.mkString}, $tmp, $accum")
-
-  def metaLineToParsedValue: String => ParsedValue = line =>
-    val metaType = line.drop(2).takeWhile(_ != '=')
-    val dropLength = metaType.length + 3
-    val data = line.drop(dropLength)
-    val tagged = data.take(1)
-    val next = data.drop(1)
-    tagged match 
-      case "<" => 
-        assert(next.last == '>', s"meta line $line does not end with '>', but  ${next.last}")
-        val keyValues = next.dropRight(1).split(',').map { keyValue =>
-          val key = keyValue.takeWhile(_ != '=')
-          val value = keyValue.drop(key.size).drop(1)
-          key -> value
-        }.toMap
-        ParsedValue.IdValue(metaType, keyValues)
-      case _ =>
-        ParsedValue.SimpleValue(metaType, next)
-
-
-    val metaType = line.drop(2).takeWhile(_ != '=')
-
-
-
-    metaType match
-      case MetaTags.INFO => extractINFO(breakMetaIdField(line.drop(MetaTags.INFO.length + 1)))
-      case MetaTags.FORMAT => extractFORMAT(breakMetaIdField(line.drop(MetaTags.FORMAT.length + 1)))
-      case MetaTags.ALT => extractALT(breakMetaIdField(line.drop(MetaTags.ALT.length + 1)))
-      case MetaTags.META => 
-        println("META line:")
-        println(line)
-        val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
-        println(s"id: ${idLine}")
-        extractMETA(idLine)
-      case MetaTags.SAMPLE => extractSAMPLE(breakMetaIdField(line.drop(MetaTags.SAMPLE.length + 1)))
-      case MetaTags.fileformat => FileFormat(line.drop(MetaTags.fileformat.size + 3).trim())
-      case MetaTags.fileDate => FileDate(line.drop(MetaTags.fileDate.size + 3))
-      case MetaTags.contig => extractContig(breakMetaIdField(line.drop(MetaTags.contig.length + 1)))
       case MetaTags.reference => Reference(line.drop(MetaTags.reference.size + 3).trim())
-        // extractContig(breakMetaIdField(line.drop(MetaTags.reference.length + 1)))
       case meta if line.drop(metaType.length()+3).headOption.getOrElse('c') == '<' =>
-        val idLine = breakMetaIdField(line.drop(MetaTags.META.length + 1))
-        println(s"id: ${idLine}")
-        println(s"here it is: $meta")
-        extractMETA(idLine)
+        extractMETA(columns)
       case _ => throw new Exception(s"Undefined metainfo: $line, with token: $metaType, for value check: ${line.drop(metaType.length()+1).head}")
-    */
