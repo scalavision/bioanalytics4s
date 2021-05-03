@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 trait SplitParser[Splitter, Input, Output]:
   def parse(data: Input): Output

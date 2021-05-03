@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 trait MIE[A]:
   def encode(a: A): String

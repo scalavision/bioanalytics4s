@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}

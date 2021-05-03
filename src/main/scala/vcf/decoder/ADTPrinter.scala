@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 trait ADTPrinter[A]:
   def print(a: A): String

@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 import scala.deriving.*
 import scala.compiletime.{erasedValue, summonInline}
@@ -59,7 +59,7 @@ object GenericDecoder:
           tail: GenericDecoder[List[String], B]
   ): GenericDecoder[List[String], A *: B] with
       def decode(cells: List[String]) = cells match
-        case Nil => throws(s"Too few columns in Row")
+        case Nil => vcf.throws(s"Too few columns in Row")
         case x :: xs =>
           head.decode(x) *: tail.decode(xs)
 
@@ -82,6 +82,14 @@ object DecodeApi:
       using dec: GenericDecoder[List[String], A]
     ) =
       dec.decode(data)
+
+    def decodeCsv[A](
+      data: String
+    )(
+      using dec: RowDecoder[List[String], A]
+    ) = {
+      RowDecoder.decodeCsv(data)(using dec)
+    }
 
     def decodeRowIntoTuples[A <: Tuple](
       data: List[String]

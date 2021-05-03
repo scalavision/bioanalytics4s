@@ -1,4 +1,5 @@
 package vcf
+import vcf.decoder.{DecodeApi, GenericDecoder}
 
 enum Vcf:
   case SingleSample(
@@ -51,7 +52,6 @@ object VcfDecoder:
   given GenericDecoder[String, Filter] = from[String, Filter]( s => Filter(s.split(':').toList))
   given GenericDecoder[String, Genotype] = from[String, Genotype](s => Genotype.apply(s.split(':').toList))
   given GenericDecoder[List[String], List[Genotype]] = from[List[String], List[Genotype]](s => s.map(s => Genotype.apply(s.split(':').toList)))
-
   given GenericDecoder[String, Info] = from[String, Info] { s =>
     val infoMap: Map[String, List[String]] = s.split(';').toList.foldLeft(Map.empty[String, List[String]]){(acc, s) =>
       val keyValues = s.split('=')

@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 trait RowDecoder[Row, A]:
   def decode(row: Row): A

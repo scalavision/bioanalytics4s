@@ -2,7 +2,7 @@ package vcf
 
 import zio.test.*
 import zio.test.Assertion.*
-
+import vcf.decoder.*
 
 object MetaInfoSpecRunner:
 

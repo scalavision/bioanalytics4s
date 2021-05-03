@@ -28,40 +28,41 @@ def nutsData =
       |2007,""".stripMargin
 @main
 def Main(args: String*): Unit =
-  println(vcf.Decoder.decodeCsv[Int](csvOfIntegers))
+  import vcf.decoder.*
+  println(Decoder.decodeCsv[Int](csvOfIntegers))
 
-  val data = vcf.RowDecoder.decodeCsv[(Int, String)](hetergenousTypes)
+  val data = DecodeApi.decodeCsv[(Int, String)](hetergenousTypes)
   println(data)
 
-  val ints = vcf.RowDecoder.decodeCsv[List[Int]](csvOfIntegers)
+  val ints = DecodeApi.decodeCsv[List[Int]](csvOfIntegers)
   println(ints)
 
-  val data2 = vcf.RowDecoder.decodeCsv[(Option[Int], String)](optionalCsvData)
+  val data2 = DecodeApi.decodeCsv[(Option[Int], String)](optionalCsvData)
   println(data2)
 
-  val data3 = vcf.RowDecoder.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
+  val data3 = DecodeApi.decodeCsv[(Either[Int,Boolean], String)](eitherRow)
   println(data3)
 
   type Row = List[Either[Either[Int,Boolean],Option[String]]]
-  val data4 = vcf.RowDecoder.decodeCsv[Row](nutsData)
+  val data4 = DecodeApi.decodeCsv[Row](nutsData)
   println(data4)
   
-  val ints2 = vcf.DecodeApi.splitParser(csvOfIntegers)
-  val decodedInts2 = vcf.DecodeApi.decodeUnisonRows[Int](ints2)
+  val ints2 = DecodeApi.splitParser(csvOfIntegers)
+  val decodedInts2 = DecodeApi.decodeUnisonRows[Int](ints2)
   println(decodedInts2)
 
-  val decodedInts3 = vcf.DecodeApi.decodeAllRows[List[Int]](ints2)
+  val decodedInts3 = DecodeApi.decodeAllRows[List[Int]](ints2)
   println(decodedInts3)
 
-  val optionalCsvData2 = vcf.DecodeApi.splitParser(optionalCsvData)
-  val data2a = vcf.DecodeApi.decodeAllRows[(Option[Int], String)](optionalCsvData2)
+  val optionalCsvData2 = DecodeApi.splitParser(optionalCsvData)
+  val data2a = DecodeApi.decodeAllRows[(Option[Int], String)](optionalCsvData2)
   println(data2a)
 
-  val nutsData2 = vcf.DecodeApi.splitParser(nutsData)
-  val nutsdataResult = vcf.DecodeApi.decodeAllRows[Row](nutsData2)
+  val nutsData2 = DecodeApi.splitParser(nutsData)
+  val nutsdataResult = DecodeApi.decodeAllRows[Row](nutsData2)
   println(nutsdataResult)
 
   type SingleRow = List[Either[Either[Int,Boolean],Option[String]]]
   val lines = nutsData.split('\n')
-  val complexNutsData = vcf.DecodeApi.parseAndDecodeRow[SingleRow, vcf.CommaSplitter](lines.head)
+  val complexNutsData = DecodeApi.parseAndDecodeRow[SingleRow, CommaSplitter](lines.head)
   println(complexNutsData)

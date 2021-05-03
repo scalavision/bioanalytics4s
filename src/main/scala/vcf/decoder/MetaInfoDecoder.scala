@@ -1,4 +1,4 @@
-package vcf
+package vcf.decoder
 
 enum DataType:
   // e values from −2 31 to −2 31 + 7 cannot be stored in the binary 
@@ -196,13 +196,6 @@ object MetaInfo:
     val additionalFields = toMapFromIndex(3)(columns)
     FORMAT(ID(columns), toNumber(Number(columns)), toType(Type(columns)), additionalFields.head._2, additionalFields.tail)
   
-  val breakMetaIdField: String => Map[String, String] = 
-    _.dropWhile(_ != '<' ).drop(1).takeWhile(_ != '>').split(',').map { line =>
-      val key = line.takeWhile(_ != '=')
-      val value = line.drop(key.size).drop(1)
-      key -> value
-    }.toMap
-
   val columnToMap: Vector[String] => Map[String, String] = _.map { line =>
       val key = line.takeWhile(_ != '=')
       val value = line.drop(key.size).drop(1).filter(_.isDigit)
