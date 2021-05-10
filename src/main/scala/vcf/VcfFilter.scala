@@ -33,7 +33,6 @@ enum VcfFilter [+A] { self =>
   def oneOf[A2 >: A](as: A2*) = VcfFilter.OneOf(as.toList)
 }
 
-
 object VcfFilter:
 
   def range(start: Chrom, posStart: Pos, end: Chrom, posEnd: Pos) = 
