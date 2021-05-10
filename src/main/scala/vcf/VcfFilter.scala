@@ -7,6 +7,7 @@ enum VcfFilter [+A] { self =>
   case LessThanOrEqual[A](value: A) extends VcfFilter[A]
   case LargerThan[A](value: A) extends VcfFilter[A]
   case LargerThanOrEqual[A](value: A) extends VcfFilter[A]
+  case OneOf[A](values: List[A]) extends VcfFilter[A]
   case And(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case Or(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case XOr(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
@@ -29,6 +30,7 @@ enum VcfFilter [+A] { self =>
   def < [A2 >: A] (a: A2) = VcfFilter.LessThan(a)
   def > [A2 >: A] (a: A2) = VcfFilter.LargerThan(a)
 
+  def oneOf[A2 >: A](as: A2*) = VcfFilter.OneOf(as.toList)
 }
 
 
