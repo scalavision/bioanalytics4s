@@ -5,6 +5,8 @@ package doc
 // Associative
 // Comutative
 // Inverse
+
+object hide {
 trait OperatorDescription[A] {
   def binaryOp: A => A
   def unaryOp: (A,A) => A
@@ -54,3 +56,4 @@ case class Average(currentSum: Double, currentCount: Long) {
 }
 
 
+}

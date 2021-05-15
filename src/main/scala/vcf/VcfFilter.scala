@@ -17,12 +17,13 @@ trait Comparison[A] extends Ordered[A] {
 
 enum VcfFilter [+A] { self =>
 
-  //case Value(b: Boolean) extends VcfFilter[Boolean]
+  case Value(b: Boolean) extends VcfFilter[A]
+  // should also add LessThan, LargerThan, IsEqual etc.
   case And(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case Or(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case XOr(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case Not(filter: VcfFilter[A])
-
+  case LessThan(v1: Value[A], v2: Value[A])
   def &&[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.And(self, that)
 
   def ||[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.Or(self, that)
@@ -35,6 +36,11 @@ enum VcfFilter [+A] { self =>
 
 }
 
+import VcfFilter.*
+
+extension [A](v1: Value[A])
+  def < (v2: Value[A]) = VcfFilter.LessThan(v1, v2)
+  
 //TODO: Make implicit conversions for VcfType to VcfFilter.Value
 
 object VcfFilter:

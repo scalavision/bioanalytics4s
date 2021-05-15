@@ -26,8 +26,8 @@ def nutsData =
   s"""|1997,Ford
       |true,Mercury
       |2007,""".stripMargin
-@main
-def Main(args: String*): Unit =
+
+def decoreDemo() =
   import vcf.decoder.*
   println(Decoder.decodeCsv[Int](csvOfIntegers))
 
@@ -66,3 +66,10 @@ def Main(args: String*): Unit =
   val lines = nutsData.split('\n')
   val complexNutsData = DecodeApi.parseAndDecodeRow[SingleRow, CommaSplitter](lines.head)
   println(complexNutsData)
+
+@main
+def Main(args: String*): Unit =
+  
+  pprint.pprintln(doc.expr.eval1())
+  pprint.pprintln(doc.expr.eval2())
+  pprint.pprintln(doc.num.TestNum.result1)

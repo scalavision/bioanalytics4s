@@ -13,7 +13,7 @@ trait OperatorDescription[A] {
 // Can't do much with this:
 final case class BoringEvent(description: String)
 
-
+/*
 
 sealed trait Event:
   self =>
@@ -26,7 +26,7 @@ sealed trait Event:
     Event.Parallel(self, that)
 
 object Event:
-  final case object Empty extends Event
+   case object Empty extends Event
   final case class Single(description: String) extends Event
   final case class Parallel(left: Event, right: Event) extends Event
   final case class Sequential(first: Event, second: Event) extends Event
@@ -38,3 +38,4 @@ object EventTypes:
 
   prepareFlour ++ bakeBread
   bakeBread ++ prepareFlour
+*/
