@@ -43,3 +43,11 @@ final case class Filter(values: List[String]) extends VcfType
 final case class Info(values: Map[String, List[String]]) extends VcfType
 final case class Format(values: List[String]) extends VcfType
 final case class Genotype(s: List[String])
+
+import VcfFilter.*
+
+extension [A](v1: Value[A])
+  def < (v2: Value[A]) = LessThan(v1, v2)
+  def > (v2: Value[A]) = LargerThan(v1, v2)
+  def <= (v2: Value[A]) = Or(LessThan(v1,v2), IsEqual(v1,v2))
+  def >= (v2: Value[A]) = Or(LargerThan(v1,v2), IsEqual(v1,v2))
