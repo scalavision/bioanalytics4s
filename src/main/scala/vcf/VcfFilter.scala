@@ -1,38 +1,52 @@
 package vcf
 
+/*
+We are mixing filtering with Ordering which is a different concern
+*/
+
+trait Region[A]{
+  def start: A
+  def end: A
+}
+
+trait Comparison[A] extends Ordered[A] {
+  def isEqual(a1: A, a2: A): Boolean
+  def > (a1: A, a2: A): Boolean
+  def < (a1: A, a2: A): Boolean
+}
+
 enum VcfFilter [+A] { self =>
 
-  case IsEqual[A](value: A) extends VcfFilter[A]
-  case LessThan[A](value: A) extends VcfFilter[A]
-  case LargerThan[A](value: A) extends VcfFilter[A]
-  case OneOf[A](values: List[A]) extends VcfFilter[A]
+  //case Value(b: Boolean) extends VcfFilter[Boolean]
   case And(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case Or(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case XOr(left: VcfFilter[A], right: VcfFilter[A]) extends VcfFilter[A]
   case Not(filter: VcfFilter[A])
 
-  def &&[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.And[A2](self, that)
+  def &&[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.And(self, that)
 
-  def ||[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.Or[A2](self, that)
+  def ||[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.Or(self, that)
 
   // https://docs.scala-lang.org/tour/operators.html
   def xor[A2 >: A](that: VcfFilter[A2]): VcfFilter[A2] = VcfFilter.XOr(self, that)
     //(self || that) && !(self && that)
 
-  def unary_! : VcfFilter[A] = VcfFilter.Not[A](self)
+  def unary_! : VcfFilter[A] = VcfFilter.Not(self)
 
-  def ===[A2 >: A] (a: A2) = VcfFilter.IsEqual(a)
-
-  def <= [A2 >: A] (a: A2) = Or(VcfFilter.LessThan(a), IsEqual(a))
-  def >= [A2 >: A] (a: A2) = Or(VcfFilter.LargerThan(a), IsEqual(a))
-  def < [A2 >: A] (a: A2) = VcfFilter.LessThan(a)
-  def > [A2 >: A] (a: A2) = VcfFilter.LargerThan(a)
-
-  def oneOf[A2 >: A](as: A2*) = VcfFilter.OneOf(as.toList)
 }
+
+//TODO: Make implicit conversions for VcfType to VcfFilter.Value
 
 object VcfFilter:
 
-  def range(start: Chrom, posStart: Pos, end: Chrom, posEnd: Pos) = 
-    LargerThan(start) && LargerThan(posStart) && LessThan(end) && LessThan(posEnd)
+  //TODO: find a way to make this compile
+  def rangeExclusive[A: Comparison](value: A, region: Region[A]) = ???
+    
+    //Value(value > region.start) && Value(value < region.stop)
+
+  //   LargerThan(start) && LargerThan(posStart) && LessThan(end) && LessThan(posEnd)
+
+  // def rangeInclusive(start: Chrom, posStart: Pos, end: Chrom, posEnd: Pos): VcfFilter[VcfType] = 
+  //   LargerThan(start) && LargerThan(posStart) && LessThan(end) && LessThan(posEnd)
+  
   
