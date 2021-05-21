@@ -46,7 +46,9 @@ object VcfFilter:
 
   //TODO: find a way to make this compile
   // def rangeExclusive[A: Comparison](value: A, region: Region[A]) = ???
-    
+  // def rangeExclusive[A: Comparison](value: A, region: Region[A]) = ???
+  def rangeExclusive[A: Comparison](value: A, region: Region[A]) = ???
+  
     //Value(value > region.start) && Value(value < region.stop)
 
   //   LargerThan(start) && LargerThan(posStart) && LessThan(end) && LessThan(posEnd)
