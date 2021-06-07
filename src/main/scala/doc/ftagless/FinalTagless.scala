@@ -14,27 +14,31 @@ package doc.ftagless
 
 // https://jproyo.github.io/posts/2019-02-07-practical-tagless-final-in-scala.html
 
-trait SqlExpr[A]:
-  def value(a: A): A  
+// Tagless final example
+trait SqlExprTF[A]:
+  def bool(a: Boolean): SqlExpr[Boolean]
+  def int(a: Int): SqlExpr[Int]
+  def lEq(a: Int, b: Int): Boolean = a <= b
+  def and(a: Boolean, b: Boolean): Boolean = a && b
+  def or(a: Boolean, b: Boolean): Boolean = a || b
 
-/* This without GADT will be lagorous!
-enum SqlExpr:
-  case Number(i: Int)
-  case Bool(b: Boolean)
-  case And(a: SqlExpr, b: SqlExpr)
-  case Or(a: SqlExpr, b: SqlExpr)
-  case Not(a: SqlExpr)
-  case LEq(a: SqlExpr, b: SqlExpr)
+enum SqlExpr[A]:
+  case Number(i: Int) extends SqlExpr[Int]
+  case Bool(b: Boolean) extends SqlExpr[Boolean]
+  case And(a: SqlExpr[Boolean], b: SqlExpr[Boolean]) extends SqlExpr[Boolean]
+  case Or(a: SqlExpr[Boolean], b: SqlExpr[Boolean]) extends SqlExpr[Boolean]
+  case Not(a: SqlExpr[Boolean]) extends SqlExpr[Boolean]
+  case LEq(a: SqlExpr[Int], b: SqlExpr[Int]) extends SqlExpr[Boolean]
 
 object SqlExpr:
-  def eval(sql: SqlExpr): Boolean = 
+  def eval[A](sql: SqlExpr[A]): A = 
     sql match
       case Bool(b) => b
+      case Number(i) => i
       case LEq(l,r) => eval(l) <= eval(r)
       case And(l,r) => eval(l) && eval(r)
       case Or(l,r) => eval(l) || eval(r)
-      case Not(s) => ! eval(s)
-*/
+      case Not(s) => !eval(s)
 
 object SimpleBool:
   enum SqlExpr:
