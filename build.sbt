@@ -1,10 +1,10 @@
-lazy val zioVersion = "1.0.7"
-lazy val OSLibVersion = "0.7.6"
-val PPrintVersion = "0.6.5"
-val SourcecodeVersion = "0.2.6"
-val uJsonVersion = "1.3.12"
-val munitVersion = "0.7.25"
-val uPickleVersion = "1.3.12"
+lazy val zioVersion = "1.0.9"
+lazy val OSLibVersion = "0.7.8"
+val PPrintVersion = "0.6.6"
+val SourcecodeVersion = "0.2.7"
+val uJsonVersion = "1.4.0"
+val munitVersion = "0.7.26"
+val uPickleVersion = "1.4.0"
 
 lazy val root = project
   .in(file("."))
@@ -13,7 +13,7 @@ lazy val root = project
     description := "Basic bioinformatics in Scala",
     version := "0.1.0",
 
-    scalaVersion := "3.0.0-RC3",
+    scalaVersion := "3.0.0",
 
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % zioVersion,

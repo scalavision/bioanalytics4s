@@ -1,6 +1,5 @@
 package doc.ftagless
 
-
 // https://gist.github.com/mmenestret/0b746cfd650796a639723ee74a3de302
 // https://gist.github.com/OlivierBlanvillain/48bb5c66dbb0557da50465809564ee80
 // https://www.becompany.ch/en/blog/2020/04/14/tagless-final-best-practices
@@ -14,11 +13,10 @@ package doc.ftagless
 
 // https://jproyo.github.io/posts/2019-02-07-practical-tagless-final-in-scala.html
 
-// Tagless final example
 trait SqlExprTF[A]:
-  def bool(a: Boolean): SqlExpr[Boolean]
-  def int(a: Int): SqlExpr[Int]
-  def lEq(a: Int, b: Int): Boolean = a <= b
+  def const(a: A): SqlExprTF[A]
+  def lessThan(a: A, b: A): Boolean
+  def not(a: A): Boolean
   def and(a: Boolean, b: Boolean): Boolean = a && b
   def or(a: Boolean, b: Boolean): Boolean = a || b
 
@@ -57,3 +55,12 @@ object SimpleBool:
         case Or(l,r) => eval(l) || eval(r)
         case Not(s) => ! eval(s)
 
+import SqlExpr.*
+object TestIt:
+  val expr = 
+    And(And(
+      LEq(Number(10), Number(5)),
+      LEq(Number(10), Number(5)),
+    ),Bool(true))
+
+  def test () = SqlExpr.eval(expr)
